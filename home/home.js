@@ -1,8 +1,13 @@
 let data = localStorage.getItem("data");
 let obj = JSON.parse(data);
 let idSp = obj.id; // supplier_id
-function showListServiceBySup_id() {
+let name = obj.name;
+$("#nameUser").html(name);
 
+showListServiceBySup_id();
+showServiceList();
+
+function showListServiceBySup_id() {
         $.ajax({
             type: "GET",
             url: `http://localhost:8080/koibito/findPriceBySupplierId/${idSp}`,
@@ -18,12 +23,12 @@ function showListServiceBySup_id() {
                       
         </tr>`
                 }
-                $("#listService").html(content);
+                $("#listServiceBySup_id").html(content);
             }
         })
 
 }
-showListServiceBySup_id();
+
 
 function deletePrice(id) { // id của price
     $.ajax({
@@ -66,9 +71,8 @@ function showEditForm(id){ // id của price
 }
 
 function editPrice(id){
-
+    event.preventDefault();
     let price = $(`#price1`).val();
-
     let newPrice = {
         "price": price
     };
@@ -84,6 +88,78 @@ function editPrice(id){
     })
 
 }
+
+function showServiceList(){
+    $.ajax({
+        type:"GET",
+        url: "http://localhost:8080/app_service",
+        success: function (ser){
+            let content = "";
+            for (let i = 0; i < ser.length; i++) {
+                content += `<option value="${ser[i].id}">${ser[i].name}</option>`
+
+            }
+            $("#listService").html(content);
+        }
+
+    })
+}
+
+
+function showCreateForm(){
+    let content = `<div class="container1">
+                    <form>
+                        <div class="mb-3">
+                            <label for="listService" class="form-label"  >Choose a service</label>
+                            <select id="listService"  class="form-control" >
+                     
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <input type="text" class="form-control" id="price">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="createPrice()" data-bs-dismiss="modal">Create</button>
+
+                        </div>
+                    </form>
+                </div>`
+    $("#showModal").html(content);
+    showServiceList();
+}
+
+
+function createPrice() {
+    let service_id = $(`#listService`).val();
+    let supplier_id = idSp;
+    let price = $(`#price`).val();
+    let newPrice = {
+        "price": price,
+        "supplier": {
+            id: supplier_id
+        },
+        "appService": {
+            id: parseInt(service_id)
+        }
+    }
+    $.ajax({
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        type: "POST",
+        data: JSON.stringify(newPrice),
+        url: `http://localhost:8080/price`,
+        success: showListServiceBySup_id
+
+    })
+    event.preventDefault();
+
+}
+
+
 
 
 
